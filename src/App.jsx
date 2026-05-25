@@ -327,6 +327,35 @@ export default function App() {
     </div>
   );
 
+const renderTermsAndConditions = () => {
+  return (
+    <div className="min-h-screen bg-[#FDFBF7] max-w-md mx-auto p-6 flex flex-col justify-between">
+      <div className="overflow-y-auto pr-1">
+        <h2 className="font-bold text-2xl mb-6 text-gray-900 border-b pb-3">Términos y Condiciones</h2>
+        
+        <div className="text-gray-700 space-y-4 text-sm leading-relaxed">
+          <p className="font-semibold text-orange-600">Bienvenido a AdoptaMatch.</p>
+          
+          <p><strong>1. Propósito de la Plataforma:</strong> AdoptaMatch es una herramienta tecnológica sin fines de lucro diseñada para facilitar el contacto entre fundaciones de rescate animal y potenciales adoptantes. No gestionamos ni cobramos comisiones por adopción.</p>
+          
+          <p><strong>2. Responsabilidad de la Información:</strong> Cada fundación es la única responsable de la veracidad, salud, edad y estado de los animales publicados. AdoptaMatch no se hace responsable por descripciones erróneas.</p>
+          
+          <p><strong>3. Uso de Datos Personales:</strong> Al completar un formulario de postulación, el adoptante acepta que sus datos de contacto (nombre, teléfono, correo) sean compartidos exclusivamente con la fundación a cargo del animal seleccionado.</p>
+          
+          <p><strong>4. Compromiso de Adopción:</strong> El usuario se compromete a entregar información real en sus postulaciones, entendiendo que adoptar una mascota es una responsabilidad legal y afectiva para toda la vida.</p>
+        </div>
+      </div>
+      
+      <button 
+        onClick={() => setView('welcome')} 
+        className="bg-orange-500 text-white p-4 rounded-xl w-full font-bold mt-6 shadow-md hover:bg-orange-600 transition-all active:scale-[0.98]"
+      >
+        Entendido y Volver
+      </button>
+    </div>
+  );
+};
+
   // --- COMPONENTES DE FUNDACIÓN ---
   const renderFoundationLogin = () => {
     // SEGURIDAD: Autenticación Real usando Firebase Auth
