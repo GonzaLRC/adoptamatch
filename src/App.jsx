@@ -53,6 +53,7 @@ export default function App() {
   
   // Formularios y Archivos
   const [foundationAuth, setFoundationAuth] = useState({ identifier: '', password: '', isLogin: true });
+  const [showPassword, setShowPassword] = useState(false);
   const [foundationData, setFoundationData] = useState({ name: '', rut: '', instagram: '', customFormFile: null, customFormFileName: '', isVerified: false });
   const [newDog, setNewDog] = useState({ name: '', sex: 'Macho', age: 'Menos de 1 año', breed: '', location: '', country: 'Chile', description: '', temporalHome: false, permanentAdoption: true, sterilized: false, microchip: false });
   const [selectedFiles, setSelectedFiles] = useState([]); 
@@ -300,7 +301,9 @@ export default function App() {
           </label>
           <label className="flex items-start gap-3 cursor-pointer">
             <input type="checkbox" className="mt-1 w-5 h-5 text-orange-500 rounded focus:ring-orange-500" checked={acceptedTerms} onChange={(e) => setAcceptedTerms(e.target.checked)} />
-            <span className="text-sm text-gray-700">Acepto los <span className="text-orange-600 font-semibold underline">Términos y Condiciones</span>.</span>
+            <span className="text-sm text-gray-700">
+  Acepto los <button onClick={() => setView('terms-conditions')} className="text-orange-600 font-semibold underline">Términos y Condiciones</button>.
+</span>
           </label>
         </div>
         <button onClick={initAuthFlow} disabled={!canContinue} className={`w-full max-w-sm font-bold py-4 px-6 rounded-2xl shadow-md transition flex items-center justify-center text-lg mb-6 ${canContinue ? 'bg-orange-500 text-white hover:bg-orange-600' : 'bg-gray-300 text-gray-500 cursor-not-allowed'}`}>Comenzar</button>
@@ -365,7 +368,25 @@ export default function App() {
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Contraseña</label>
-            <input required type="password" minLength={6} maxLength={64} className="w-full border-gray-300 rounded-xl p-4 border focus:ring-orange-500" placeholder="••••••••" value={foundationAuth.password} onChange={e => setFoundationAuth({...foundationAuth, password: e.target.value})} />
+  <div className="relative">
+    <input 
+      required 
+      type={showPassword ? "text" : "password"} 
+      minLength={6} 
+      maxLength={64} 
+      className="w-full border-gray-300 rounded-xl p-4 pr-12 border focus:ring-orange-500" 
+      placeholder="••••••••" 
+      value={foundationAuth.password} 
+      onChange={e => setFoundationAuth({...foundationAuth, password: e.target.value})} 
+    />
+    <button 
+      type="button" 
+      onClick={() => setShowPassword(!showPassword)} 
+      className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 text-xs font-bold"
+    >
+      {showPassword ? 'Ocultar' : 'Mostrar'}
+    </button>
+  </div>
           </div>
           <button type="submit" disabled={isSubmitting} className="w-full bg-blue-600 text-white font-bold py-4 rounded-xl shadow-md mt-6 flex justify-center items-center">
             {isSubmitting ? <Loader2 className="animate-spin" size={20} /> : (foundationAuth.isLogin ? 'Ingresar Seguro' : 'Registrar Fundación')}
@@ -1054,6 +1075,7 @@ export default function App() {
         {view === 'welcome' && renderWelcome()}
         {view === 'privacy-policy' && renderPrivacyPolicy()}
         {view === 'role-select' && renderRoleSelect()}
+        {view === 'terms-conditions' && renderTermsAndConditions()}
         
         {view === 'foundation-login' && renderFoundationLogin()}
         {view === 'foundation-verify' && renderFoundationVerify()}
@@ -1068,4 +1090,17 @@ export default function App() {
       </div>
     </div>
   );
+const renderTermsAndConditions = () => (
+  <div className="min-h-screen bg-white max-w-md mx-auto p-6 overflow-y-auto">
+    <h2 className="font-bold text-xl mb-4">Términos y Condiciones</h2>
+    <div className="text-gray-600 space-y-4 text-sm mb-6">
+      <p><strong>1. Uso de la Plataforma:</strong> AdoptaMatch es un canal de comunicación directo entre fundaciones y adoptantes. No intervenimos en los criterios de selección de las organizaciones.</p>
+      <p><strong>2. Responsabilidad de Datos:</strong> Al enviar una solicitud, autorizas de forma segura el envío de tus datos de contacto únicamente a la fundación correspondiente.</p>
+      <p><strong>3. Veracidad:</strong> Las organizaciones son responsables de garantizar que la información de los animales publicados sea verídica y actualizada.</p>
+    </div>
+    <button onClick={() => setView('welcome')} className="bg-orange-500 text-white p-3 rounded-xl w-full font-bold">
+      Entendido y Volver
+    </button>
+  </div>
+);
 }
