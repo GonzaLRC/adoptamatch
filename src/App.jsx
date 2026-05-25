@@ -1119,17 +1119,4 @@ const renderTermsAndConditions = () => {
       </div>
     </div>
   );
-const renderTermsAndConditions = () => (
-  <div className="min-h-screen bg-white max-w-md mx-auto p-6 overflow-y-auto">
-    <h2 className="font-bold text-xl mb-4">Términos y Condiciones</h2>
-    <div className="text-gray-600 space-y-4 text-sm mb-6">
-      <p><strong>1. Uso de la Plataforma:</strong> AdoptaMatch es un canal de comunicación directo entre fundaciones y adoptantes. No intervenimos en los criterios de selección de las organizaciones.</p>
-      <p><strong>2. Responsabilidad de Datos:</strong> Al enviar una solicitud, autorizas de forma segura el envío de tus datos de contacto únicamente a la fundación correspondiente.</p>
-      <p><strong>3. Veracidad:</strong> Las organizaciones son responsables de garantizar que la información de los animales publicados sea verídica y actualizada.</p>
-    </div>
-    <button onClick={() => setView('welcome')} className="bg-orange-500 text-white p-3 rounded-xl w-full font-bold">
-      Entendido y Volver
-    </button>
-  </div>
-);
 }
