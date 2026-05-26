@@ -640,8 +640,171 @@ const renderTermsAndConditions = () => {
   <button 
     className={`flex-1 py-4 font-bold text-sm ${foundationTab === 'requests' ? 'text-orange-500 border-b-2 border-orange-500' : 'text-gray-500'}`}
     onClick={() => setFoundationTab('requests')}
-    const renderFoundationDash = () => {
-  // ... (lógica arriba)
+    // --- VISTA: DASHBOARD DE FUNDACION ---
+  const renderFoundationDash = () => {
+    return (
+      <div className="min-h-screen bg-gray-50 flex flex-col">
+        {/* Cabecera */}
+        <div className="bg-orange-600 p-4 text-white flex justify-between items-center sticky top-0 z-10 shadow-md">
+          <div>
+            <h1 className="font-bold text-xl flex items-center gap-2">
+              Mi Fundación <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-green-400" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M2.166 4.999A11.954 11.954 0 0010 1.944 11.954 11.954 0 0017.834 5c.11.65.166 1.32.166 2.001 0 5.225-3.34 9.67-8 11.317C5.34 16.67 2 12.225 2 7c0-.682.057-1.35.166-2.001zm11.541 3.708a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" /></svg>
+            </h1>
+            <p className="text-sm text-orange-200">Panel de Administración</p>
+          </div>
+          <button 
+            onClick={async () => {
+              try {
+                await signOut(auth);
+                setView('welcome');
+                setFoundationAuth({ isLogin: true, email: '', password: '' });
+                setFoundationDogs([]);
+              } catch (error) {
+                console.error("Error al cerrar sesión", error);
+              }
+            }} 
+            className="text-sm border border-orange-400 px-3 py-1.5 rounded-lg hover:bg-orange-700 transition-colors flex items-center gap-2"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg>
+            Salir Seguro
+          </button>
+        </div>
+
+        {/* Pestañas (Tabs) */}
+        <div className="flex border-b bg-white shadow-sm">
+          <button 
+            className={`flex-1 py-4 font-bold text-sm transition-colors ${foundationTab === 'dogs' ? 'text-orange-600 border-b-2 border-orange-600 bg-orange-50' : 'text-gray-500 hover:bg-gray-50'}`}
+            onClick={() => setFoundationTab('dogs')}
+          >
+            Mis Perros ({foundationDogs.length})
+          </button>
+          <button 
+            className={`flex-1 py-4 font-bold text-sm transition-colors ${foundationTab === 'requests' ? 'text-orange-600 border-b-2 border-orange-600 bg-orange-50' : 'text-gray-500 hover:bg-gray-50'}`}
+            onClick={() => setFoundationTab('requests')}
+          >
+            Solicitudes
+          </button>
+          <button 
+            className={`flex-1 py-4 font-bold text-sm transition-colors ${foundationTab === 'temporales' ? 'text-purple-600 border-b-2 border-purple-600 bg-purple-50' : 'text-gray-500 hover:bg-gray-50'}`}
+            onClick={() => setFoundationTab('temporales')}
+          >
+            Temporales
+          </button>
+        </div>
+
+        {/* Contenido principal con scroll */}
+        <div className="flex-1 overflow-y-auto pb-24">
+          
+          {/* TAB: MIS PERROS */}
+          {foundationTab === 'dogs' && (
+            <div className="p-4">
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-gray-600 font-medium text-sm">Tus publicaciones activas</h2>
+              </div>
+              
+              {foundationDogs.length === 0 ? (
+                <div className="text-center py-12 bg-white rounded-2xl border border-dashed border-gray-300">
+                  <div className="text-gray-400 mb-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                  </div>
+                  <p className="text-gray-500 font-medium">Aún no tienes perritos publicados.</p>
+                  <p className="text-sm text-gray-400 mt-1">Usa el botón flotante para agregar uno.</p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-2 gap-4">
+                  {foundationDogs.map(dog => (
+                    <div key={dog.id} className="bg-white rounded-2xl overflow-hidden shadow-sm border border-gray-100 relative group">
+                      <img src={dog.image} alt={dog.name} className="w-full h-32 object-cover" />
+                      <div className="p-3">
+                        <h3 className="font-bold text-gray-800">{dog.name}</h3>
+                        <p className="text-xs text-gray-500 mt-1">{dog.age} • {dog.gender}</p>
+                      </div>
+                      <button 
+                        onClick={async () => {
+                          if (window.confirm(`¿Estás seguro de eliminar a ${dog.name}?`)) {
+                            try {
+                              await deleteDoc(doc(db, 'dogs', dog.id));
+                              // La actualización local se maneja en el onSnapshot
+                            } catch (error) {
+                              console.error("Error al eliminar", error);
+                              alert("No se pudo eliminar.");
+                            }
+                          }
+                        }}
+                        className="absolute top-2 right-2 bg-red-500 text-white p-1.5 rounded-full opacity-0 group-hover:opacity-100 transition-opacity shadow-md hover:bg-red-600"
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* TAB: SOLICITUDES */}
+          {foundationTab === 'requests' && (
+            <div className="p-4 space-y-4">
+              <h2 className="text-gray-500 font-medium text-sm mb-2">Solicitudes de Adopción Recibidas</h2>
+              
+              <div className="bg-white p-4 rounded-2xl shadow-sm border border-orange-100 border-l-4 border-l-orange-500">
+                <div className="flex justify-between items-start mb-2">
+                  <h3 className="font-bold text-gray-800 text-lg">María González</h3>
+                  <span className="bg-orange-100 text-orange-800 text-xs px-2 py-1 rounded-full font-bold">Para: Max</span>
+                </div>
+                <div className="text-sm text-gray-600 space-y-1 mb-3">
+                  <p>📍 Santiago, Departamento</p>
+                  <p>🐶 Experiencia: Alta (Tuvo perros antes)</p>
+                  <p className="italic text-gray-500 text-xs">"Me enamoré de Max, tengo mucho espacio y trabajo desde casa."</p>
+                </div>
+                <div className="flex gap-2">
+                  <button className="flex-1 bg-green-500 text-white font-bold py-2 rounded-xl flex items-center justify-center gap-2 hover:bg-green-600 transition-colors text-sm">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M18 10c0 3.866-3.582 7-8 7a8.841 8.841 0 01-4.083-.98L2 17l1.338-3.123C2.493 12.767 2 11.434 2 10c0-3.866 3.582-7 8-7s8 3.134 8 7zM7 9H5v2h2V9zm8 0h-2v2h2V9zM9 9h2v2H9V9z" clipRule="evenodd" /></svg>
+                    WhatsApp
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* TAB: TEMPORALES */}
+          {foundationTab === 'temporales' && (
+            <div className="p-4 space-y-4">
+              <h2 className="text-gray-500 font-medium text-sm mb-2">Red de Hogares Temporales Disponibles</h2>
+              
+              <div className="bg-white p-4 rounded-2xl shadow-sm border border-purple-100 border-l-4 border-l-purple-500">
+                <div className="flex justify-between items-start mb-2">
+                  <h3 className="font-bold text-gray-800 text-lg">Camila Rojas</h3>
+                  <span className="bg-green-100 text-green-700 text-xs px-2 py-1 rounded-full font-bold">100% Gratis</span>
+                </div>
+                <div className="text-sm text-gray-600 space-y-1 mb-3">
+                  <p>📍 Providencia, Chile</p>
+                  <p>🗓️ Disponibilidad: Inmediata</p>
+                  <p className="italic text-gray-500 text-xs">"Tengo patio grande, acepto solo cachorros, tengo otros perros..."</p>
+                </div>
+                <button className="w-full bg-green-500 text-white font-bold py-2 rounded-xl flex items-center justify-center gap-2 hover:bg-green-600 text-sm">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M18 10c0 3.866-3.582 7-8 7a8.841 8.841 0 01-4.083-.98L2 17l1.338-3.123C2.493 12.767 2 11.434 2 10c0-3.866 3.582-7 8-7s8 3.134 8 7zM7 9H5v2h2V9zm8 0h-2v2h2V9zM9 9h2v2H9V9z" clipRule="evenodd" /></svg>
+                  Contactar por WhatsApp
+                </button>
+              </div>
+            </div>
+          )}
+
+        </div>
+
+        {/* Botón Flotante para Agregar Perro */}
+        {foundationTab === 'dogs' && (
+          <button 
+            onClick={() => setView('add-dog')} 
+            className="fixed bottom-6 right-6 bg-orange-600 text-white p-4 rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.12)] hover:bg-orange-700 transition-all transform hover:scale-105 active:scale-95 flex items-center gap-2 font-bold z-50"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 4v16m8-8H4" /></svg>
+            Agregar
+          </button>
+        )}
+      </div>
+    );
+  };
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
