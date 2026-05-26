@@ -59,6 +59,10 @@ export default function App() {
   const [selectedFiles, setSelectedFiles] = useState([]); 
   const [adopterForm, setAdopterForm] = useState({ name: '', email: '', phone: '' });
 
+  // --- ESTADOS PARA HOGARES TEMPORALES ---
+  const [temporalForm, setTemporalForm] = useState({ name: '', phone: '', location: '', country: 'Chile', availability: 'Inmediata', rate: 'Gratis', comments: '' });
+  const [isSubmittingTemporal, setIsSubmittingTemporal] = useState(false);
+  
   // UI
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isGeneratingAI, setIsGeneratingAI] = useState(false); 
@@ -311,6 +315,118 @@ export default function App() {
     );
   };
 
+  // --- VISTA: FORMULARIO QUIERO SER TEMPORAL ---
+  const renderTemporalForm = () => {
+    const handleTemporalSubmit = async (e) => {
+      e.preventDefault();
+      setIsSubmittingTemporal(true);
+      try {
+        // Aquí guardaremos en la base de datos de Firebase (Firestore)
+        // Usaremos una colección global llamada 'temporales'
+        const db = getFirestore();
+        await addDoc(collection(db, 'temporales'), {
+          ...temporalForm,
+          createdAt: new Date().toISOString()
+        });
+        
+        // Limpiamos el formulario y volvemos a la pantalla principal
+        alert("¡Muchas gracias! Tu solicitud para ser hogar temporal ha sido enviada. Las fundaciones podrán contactarte.");
+        setTemporalForm({ name: '', phone: '', location: '', country: 'Chile', availability: 'Inmediata', rate: 'Gratis', comments: '' });
+        setView('welcome');
+      } catch (error) {
+        console.error("Error al guardar temporal:", error);
+        alert("Hubo un error al enviar tu solicitud. Inténtalo de nuevo.");
+      } finally {
+        setIsSubmittingTemporal(false);
+      }
+    };
+
+    return (
+      <div className="min-h-screen bg-[#FDFBF7] max-w-md mx-auto flex flex-col">
+        {/* Cabecera Morada */}
+        <div className="bg-purple-600 p-6 rounded-b-3xl shadow-md text-white relative">
+          <button onClick={() => setView('welcome')} className="absolute top-6 left-4 p-2">
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
+          </button>
+          <h1 className="text-2xl font-bold text-center mt-2">Hogar Temporal</h1>
+          <p className="text-purple-100 text-sm text-center mt-2">Inscríbete para ayudar a cuidar peludos mientras encuentran su hogar definitivo.</p>
+        </div>
+
+        {/* Formulario */}
+        <div className="p-6 flex-grow overflow-y-auto">
+          <form onSubmit={handleTemporalSubmit} className="space-y-4">
+            
+            {/* Nombre Completo */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Nombre Completo</label>
+              <input required type="text" className="w-full border-gray-300 rounded-xl p-3 border focus:ring-purple-500 focus:border-purple-500" placeholder="Ej. Camila Rojas" value={temporalForm.name} onChange={e => setTemporalForm({...temporalForm, name: e.target.value})} />
+            </div>
+
+            {/* Teléfono */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Teléfono (WhatsApp)</label>
+              <input required type="tel" className="w-full border-gray-300 rounded-xl p-3 border focus:ring-purple-500" placeholder="+56 9 1234 5678" value={temporalForm.phone} onChange={e => setTemporalForm({...temporalForm, phone: e.target.value})} />
+            </div>
+
+            {/* Ubicación y País */}
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Ciudad / Comuna</label>
+                <input required type="text" className="w-full border-gray-300 rounded-xl p-3 border focus:ring-purple-500" placeholder="Ej. Providencia" value={temporalForm.location} onChange={e => setTemporalForm({...temporalForm, location: e.target.value})} />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">País</label>
+                <select className="w-full border-gray-300 rounded-xl p-3 border focus:ring-purple-500" value={temporalForm.country} onChange={e => setTemporalForm({...temporalForm, country: e.target.value})}>
+                  <option value="Chile">Chile</option>
+                  <option value="Argentina">Argentina</option>
+                  <option value="Colombia">Colombia</option>
+                  <option value="México">México</option>
+                </select>
+              </div>
+            </div>
+
+            {/* Disponibilidad y Tarifa */}
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Disponibilidad</label>
+                <select className="w-full border-gray-300 rounded-xl p-3 border focus:ring-purple-500" value={temporalForm.availability} onChange={e => setTemporalForm({...temporalForm, availability: e.target.value})}>
+                  <option value="Inmediata">Inmediata</option>
+                  <option value="Fines de semana">Fines de semana</option>
+                  <option value="Por definir">Por definir</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Tarifa / Costo</label>
+                <select className="w-full border-gray-300 rounded-xl p-3 border focus:ring-purple-500" value={temporalForm.rate} onChange={e => setTemporalForm({...temporalForm, rate: e.target.value})}>
+                  <option value="Gratis">100% Gratis (Voluntario)</option>
+                  <option value="Cobro gastos básicos">Solo cubro gastos (comida/vet)</option>
+                  <option value="Cobro por día">Cobro por día (Guardería)</option>
+                </select>
+              </div>
+            </div>
+
+            {/* Comentarios adicionales */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Experiencia o Condiciones (Opcional)</label>
+              <textarea className="w-full border-gray-300 rounded-xl p-3 border focus:ring-purple-500" rows="3" placeholder="Ej. Tengo patio grande, acepto solo cachorros, tengo otros perros..." value={temporalForm.comments} onChange={e => setTemporalForm({...temporalForm, comments: e.target.value})}></textarea>
+            </div>
+
+            {/* Botón Guardar */}
+            <button 
+              type="submit" 
+              disabled={isSubmittingTemporal}
+              className="w-full bg-purple-600 text-white font-bold py-4 rounded-xl shadow-lg mt-6 hover:bg-purple-700 transition-colors disabled:opacity-70 flex justify-center items-center"
+            >
+              {isSubmittingTemporal ? (
+                <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+              ) : "Enviar Solicitud"}
+            </button>
+          </form>
+        </div>
+      </div>
+    );
+  };
+
   const renderRoleSelect = () => (
     <div className="flex flex-col items-center justify-center h-screen bg-orange-50 p-6 text-center">
       <div className="bg-orange-500 p-4 rounded-full mb-6 shadow-lg shadow-orange-200"><Dog size={64} className="text-white" /></div>
@@ -323,6 +439,13 @@ export default function App() {
         <button onClick={() => { setRole('foundation'); setView('foundation-login'); }} className="w-full bg-orange-500 text-white font-bold py-4 px-6 rounded-2xl shadow-md hover:bg-orange-600 transition flex items-center justify-center gap-3 text-lg">
           <Home size={24} /> Soy Fundación / Rescatista
         </button>
+        <button 
+  onClick={() => setView('temporal-form')} 
+  className="w-full border-2 border-purple-500 text-purple-600 bg-white hover:bg-purple-50 font-bold py-4 px-6 rounded-2xl flex items-center justify-center gap-3 transition-all transform active:scale-[0.98] shadow-sm mb-6"
+>
+  <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg>
+  Quiero ser Temporal
+</button>
       </div>
     </div>
   );
@@ -507,8 +630,51 @@ const renderTermsAndConditions = () => {
           <button onClick={() => setDashTab('applications')} className={`flex-1 py-4 text-center font-bold text-sm border-b-2 transition-colors relative ${dashTab === 'applications' ? 'border-orange-500 text-orange-600' : 'border-transparent text-gray-500'}`}>
             Solicitudes {myApplications.length > 0 && <span className="ml-2 bg-red-500 text-white text-xs px-2 py-0.5 rounded-full">{myApplications.length}</span>}
           </button>
-        </div>
+          <div className="flex border-b bg-white">
+  <button 
+    className={`flex-1 py-4 font-bold text-sm ${foundationTab === 'dogs' ? 'text-orange-500 border-b-2 border-orange-500' : 'text-gray-500'}`}
+    onClick={() => setFoundationTab('dogs')}
+  >
+    Mis Perros ({foundationDogs.length})
+  </button>
+  <button 
+    className={`flex-1 py-4 font-bold text-sm ${foundationTab === 'requests' ? 'text-orange-500 border-b-2 border-orange-500' : 'text-gray-500'}`}
+    onClick={() => setFoundationTab('requests')}
+  {/* NUEVA SECCIÓN DE CONTENIDO: TEMPORALES */}
+{foundationTab === 'temporales' && (
+  <div className="p-4 space-y-4">
+     <h2 className="text-gray-500 font-medium text-sm mb-2">Red de Hogares Temporales Disponibles</h2>
 
+     {/* Aquí en el futuro cargaremos los datos reales con un useEffect */}
+     <div className="bg-white p-4 rounded-2xl shadow-sm border border-purple-100 border-l-4 border-l-purple-500">
+        <div className="flex justify-between items-start mb-2">
+          <h3 className="font-bold text-gray-800 text-lg">Camila Rojas</h3>
+          <span className="bg-green-100 text-green-700 text-xs px-2 py-1 rounded-full font-bold">100% Gratis</span>
+        </div>
+        <div className="text-sm text-gray-600 space-y-1 mb-3">
+          <p>📍 Providencia, Chile</p>
+          <p>🗓️ Disponibilidad: Inmediata</p>
+          <p className="italic text-gray-500 text-xs">"Tengo patio grande, acepto solo cachorros, tengo otros perros..."</p>
+        </div>
+        <button className="w-full bg-green-500 text-white font-bold py-2 rounded-xl flex items-center justify-center gap-2 hover:bg-green-600">
+           <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M18 10c0 3.866-3.582 7-8 7a8.841 8.841 0 01-4.083-.98L2 17l1.338-3.123C2.493 12.767 2 11.434 2 10c0-3.866 3.582-7 8-7s8 3.134 8 7zM7 9H5v2h2V9zm8 0h-2v2h2V9zM9 9h2v2H9V9z" clipRule="evenodd" /></svg>
+           Contactar por WhatsApp
+        </button>
+     </div>
+     {/* Puedes replicar este bloque para ver cómo se vería la lista */}
+  </div>
+)}>
+    Solicitudes ({requests.length})
+  </button>
+  {/* NUEVA PESTAÑA */}
+  <button 
+    className={`flex-1 py-4 font-bold text-sm ${foundationTab === 'temporales' ? 'text-purple-600 border-b-2 border-purple-600' : 'text-gray-500'}`}
+    onClick={() => setFoundationTab('temporales')}
+  >
+    Temporales
+  </button>
+</div>
+        
         <div className="p-4 flex-1 overflow-y-auto pb-24">
           {dashTab === 'dogs' && (
             <>
@@ -1105,6 +1271,7 @@ const renderTermsAndConditions = () => {
         {view === 'privacy-policy' && renderPrivacyPolicy()}
         {view === 'role-select' && renderRoleSelect()}
         {view === 'terms-conditions' && renderTermsAndConditions()}
+        {view === 'temporal-form' && renderTemporalForm()}
         
         {view === 'foundation-login' && renderFoundationLogin()}
         {view === 'foundation-verify' && renderFoundationVerify()}
