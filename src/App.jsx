@@ -35,6 +35,7 @@ export default function App() {
   const [dogs, setDogs] = useState([]);
   const [savedDogs, setSavedDogs] = useState([]);
   const [applications, setApplications] = useState([]);
+  const [temporalesList, setTemporalesList] = useState([]); // <-- NUEVO ESTADO PARA TEMPORALES REALES
   const [isLoadingDogs, setIsLoadingDogs] = useState(true);
   const [toastMessage, setToastMessage] = useState('');
   
@@ -105,7 +106,7 @@ export default function App() {
     return () => unsubscribe();
   }, [view]);
 
-  // Cargar Perros y Solicitudes
+  // Cargar Perros, Solicitudes y Temporales
   useEffect(() => {
     if (!user) return;
     setIsLoadingDogs(true);
@@ -130,7 +131,15 @@ export default function App() {
       setApplications(appsData.reverse());
     }, (error) => console.error("Error al cargar solicitudes:", error));
 
-    return () => { unsubDogs(); unsubApps(); };
+    // Temporales (NUEVO: Descarga los temporales reales de la base de datos)
+    const temporalesRef = collection(db, 'artifacts', appId, 'public', 'data', 'temporales');
+    const unsubTemporales = onSnapshot(temporalesRef, (snapshot) => {
+      const tempData = [];
+      snapshot.forEach((doc) => tempData.push({ id: doc.id, ...doc.data() }));
+      setTemporalesList(tempData.reverse());
+    }, (error) => console.error("Error al cargar temporales:", error));
+
+    return () => { unsubDogs(); unsubApps(); unsubTemporales(); };
   }, [user]);
 
   // Cargar Perros Guardados del Adoptante (Privado y Seguro)
@@ -311,7 +320,8 @@ export default function App() {
       setIsSubmittingTemporal(true);
       try {
         const db = getFirestore();
-        await addDoc(collection(db, 'temporales'), {
+        // CORRECCIÓN: Guardamos en la ruta segura de Firebase (dentro de artifacts... data)
+        await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'temporales'), {
           ...temporalForm,
           createdAt: new Date().toISOString()
         });
@@ -321,7 +331,7 @@ export default function App() {
         setView('welcome');
       } catch (error) {
         console.error("Error al guardar temporal:", error);
-        alert("Hubo un error al enviar tu solicitud. Inténtalo de nuevo.");
+        alert("Hubo un error de conexión. Inténtalo de nuevo.");
       } finally {
         setIsSubmittingTemporal(false);
       }
@@ -341,7 +351,7 @@ export default function App() {
           <form onSubmit={handleTemporalSubmit} className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Nombre Completo</label>
-              <input required type="text" className="w-full border-gray-300 rounded-xl p-3 border focus:ring-purple-500 focus:border-purple-500" placeholder="Ej. Camila Rojas" value={temporalForm.name} onChange={e => setTemporalForm({...temporalForm, name: e.target.value})} />
+              <input required type="text" className="w-full border-gray-300 rounded-xl p-3 border focus:ring-purple-500 focus:border-purple-500" placeholder="Ej. Juan Pérez" value={temporalForm.name} onChange={e => setTemporalForm({...temporalForm, name: e.target.value})} />
             </div>
 
             <div>
@@ -719,26 +729,34 @@ const renderTermsAndConditions = () => {
             </div>
           )}
 
-          {/* TAB: TEMPORALES */}
+          {/* TAB: TEMPORALES (BORRAMOS A CAMILA Y CONECTAMOS CON LA BASE DE DATOS) */}
           {dashTab === 'temporales' && (
             <div className="p-4 space-y-4">
               <h2 className="text-gray-500 font-medium text-sm mb-2">Red de Hogares Temporales Disponibles</h2>
               
-              <div className="bg-white p-4 rounded-2xl shadow-sm border border-purple-100 border-l-4 border-l-purple-500">
-                <div className="flex justify-between items-start mb-2">
-                  <h3 className="font-bold text-gray-800 text-lg">Camila Rojas</h3>
-                  <span className="bg-green-100 text-green-700 text-xs px-2 py-1 rounded-full font-bold">100% Gratis</span>
+              {temporalesList.length === 0 ? (
+                <div className="text-center py-12 bg-white rounded-2xl border border-dashed border-gray-300">
+                  <p className="text-gray-500 font-medium">Aún no hay hogares temporales inscritos.</p>
                 </div>
-                <div className="text-sm text-gray-600 space-y-1 mb-3">
-                  <p>📍 Providencia, Chile</p>
-                  <p>🗓️ Disponibilidad: Inmediata</p>
-                  <p className="italic text-gray-500 text-xs">"Tengo patio grande, acepto solo cachorros, tengo otros perros..."</p>
-                </div>
-                <button className="w-full bg-green-500 text-white font-bold py-2 rounded-xl flex items-center justify-center gap-2 hover:bg-green-600 text-sm">
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M18 10c0 3.866-3.582 7-8 7a8.841 8.841 0 01-4.083-.98L2 17l1.338-3.123C2.493 12.767 2 11.434 2 10c0-3.866 3.582-7 8-7s8 3.134 8 7zM7 9H5v2h2V9zm8 0h-2v2h2V9zM9 9h2v2H9V9z" clipRule="evenodd" /></svg>
-                  Contactar por WhatsApp
-                </button>
-              </div>
+              ) : (
+                temporalesList.map((temp) => (
+                  <div key={temp.id} className="bg-white p-4 rounded-2xl shadow-sm border border-purple-100 border-l-4 border-l-purple-500">
+                    <div className="flex justify-between items-start mb-2">
+                      <h3 className="font-bold text-gray-800 text-lg">{temp.name}</h3>
+                      <span className="bg-green-100 text-green-700 text-xs px-2 py-1 rounded-full font-bold">{temp.rate}</span>
+                    </div>
+                    <div className="text-sm text-gray-600 space-y-1 mb-3">
+                      <p>📍 {temp.location}, {temp.country}</p>
+                      <p>🗓️ Disponibilidad: {temp.availability}</p>
+                      {temp.comments && <p className="italic text-gray-500 text-xs">"{temp.comments}"</p>}
+                    </div>
+                    <a href={`https://wa.me/${temp.phone.replace(/\D/g,'')}`} target="_blank" rel="noopener noreferrer" className="w-full bg-green-500 text-white font-bold py-2 rounded-xl flex items-center justify-center gap-2 hover:bg-green-600 text-sm transition-colors">
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M18 10c0 3.866-3.582 7-8 7a8.841 8.841 0 01-4.083-.98L2 17l1.338-3.123C2.493 12.767 2 11.434 2 10c0-3.866 3.582-7 8-7s8 3.134 8 7zM7 9H5v2h2V9zm8 0h-2v2h2V9zM9 9h2v2H9V9z" clipRule="evenodd" /></svg>
+                      Contactar por WhatsApp
+                    </a>
+                  </div>
+                ))
+              )}
             </div>
           )}
 
