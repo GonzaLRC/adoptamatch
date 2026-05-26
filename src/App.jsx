@@ -640,30 +640,54 @@ const renderTermsAndConditions = () => {
   <button 
     className={`flex-1 py-4 font-bold text-sm ${foundationTab === 'requests' ? 'text-orange-500 border-b-2 border-orange-500' : 'text-gray-500'}`}
     onClick={() => setFoundationTab('requests')}
-  {/* NUEVA SECCIÓN DE CONTENIDO: TEMPORALES */}
-{foundationTab === 'temporales' && (
-  <div className="p-4 space-y-4">
-     <h2 className="text-gray-500 font-medium text-sm mb-2">Red de Hogares Temporales Disponibles</h2>
+    const renderFoundationDash = () => {
+  // ... (lógica arriba)
 
-     {/* Aquí en el futuro cargaremos los datos reales con un useEffect */}
-     <div className="bg-white p-4 rounded-2xl shadow-sm border border-purple-100 border-l-4 border-l-purple-500">
-        <div className="flex justify-between items-start mb-2">
-          <h3 className="font-bold text-gray-800 text-lg">Camila Rojas</h3>
-          <span className="bg-green-100 text-green-700 text-xs px-2 py-1 rounded-full font-bold">100% Gratis</span>
-        </div>
-        <div className="text-sm text-gray-600 space-y-1 mb-3">
-          <p>📍 Providencia, Chile</p>
-          <p>🗓️ Disponibilidad: Inmediata</p>
-          <p className="italic text-gray-500 text-xs">"Tengo patio grande, acepto solo cachorros, tengo otros perros..."</p>
-        </div>
-        <button className="w-full bg-green-500 text-white font-bold py-2 rounded-xl flex items-center justify-center gap-2 hover:bg-green-600">
-           <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M18 10c0 3.866-3.582 7-8 7a8.841 8.841 0 01-4.083-.98L2 17l1.338-3.123C2.493 12.767 2 11.434 2 10c0-3.866 3.582-7 8-7s8 3.134 8 7zM7 9H5v2h2V9zm8 0h-2v2h2V9zM9 9h2v2H9V9z" clipRule="evenodd" /></svg>
-           Contactar por WhatsApp
-        </button>
-     </div>
-     {/* Puedes replicar este bloque para ver cómo se vería la lista */}
-  </div>
-)}>
+  return (
+    <div className="min-h-screen bg-gray-50 flex flex-col">
+      
+      {/* 1. LOS BOTONES DE LAS PESTAÑAS */}
+      <div className="flex border-b bg-white">
+         {/* ... botones ... */}
+      </div>
+
+      {/* 2. CONTENIDO: MIS PERROS */}
+      {foundationTab === 'dogs' && (
+         <div className="...">...</div>
+      )}
+
+      {/* 3. CONTENIDO: SOLICITUDES */}
+      {foundationTab === 'requests' && (
+         <div className="...">...</div>
+      )}
+
+      {/* 4. AQUÍ DEBES PEGAR EL CONTENIDO: TEMPORALES */}
+      {foundationTab === 'temporales' && (
+         <div className="p-4 space-y-4">
+            <h2 className="text-gray-500 font-medium text-sm mb-2">Red de Hogares Temporales Disponibles</h2>
+            
+            <div className="bg-white p-4 rounded-2xl shadow-sm border border-purple-100 border-l-4 border-l-purple-500">
+               <div className="flex justify-between items-start mb-2">
+                 <h3 className="font-bold text-gray-800 text-lg">Camila Rojas</h3>
+                 <span className="bg-green-100 text-green-700 text-xs px-2 py-1 rounded-full font-bold">100% Gratis</span>
+               </div>
+               <div className="text-sm text-gray-600 space-y-1 mb-3">
+                 <p>📍 Providencia, Chile</p>
+                 <p>🗓️ Disponibilidad: Inmediata</p>
+                 <p className="italic text-gray-500 text-xs">"Tengo patio grande, acepto solo cachorros, tengo otros perros..."</p>
+               </div>
+               <button className="w-full bg-green-500 text-white font-bold py-2 rounded-xl flex items-center justify-center gap-2 hover:bg-green-600">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M18 10c0 3.866-3.582 7-8 7a8.841 8.841 0 01-4.083-.98L2 17l1.338-3.123C2.493 12.767 2 11.434 2 10c0-3.866 3.582-7 8-7s8 3.134 8 7zM7 9H5v2h2V9zm8 0h-2v2h2V9zM9 9h2v2H9V9z" clipRule="evenodd" /></svg>
+                  Contactar por WhatsApp
+               </button>
+            </div>
+         </div>
+      )}
+
+    </div> {/* CIERRE FINAL DEL RETURN */}
+  );
+};
+  >
     Solicitudes ({requests.length})
   </button>
   {/* NUEVA PESTAÑA */}
