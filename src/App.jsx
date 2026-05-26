@@ -822,64 +822,7 @@ const renderTermsAndConditions = () => {
     </div> {/* CIERRE FINAL DEL RETURN */}
   );
 };
-  >
-    Solicitudes ({requests.length})
-  </button>
-  {/* NUEVA PESTAÑA */}
-  <button 
-    className={`flex-1 py-4 font-bold text-sm ${foundationTab === 'temporales' ? 'text-purple-600 border-b-2 border-purple-600' : 'text-gray-500'}`}
-    onClick={() => setFoundationTab('temporales')}
-  >
-    Temporales
-  </button>
-</div>
-        
-        <div className="p-4 flex-1 overflow-y-auto pb-24">
-          {dashTab === 'dogs' && (
-            <>
-              {myDogs.length === 0 ? (
-                <div className="text-center p-8 bg-white rounded-xl border border-dashed border-gray-300 mt-4"><Dog size={48} className="text-gray-300 mx-auto mb-3" /><p className="text-gray-500">Aún no publicas perritos.</p></div>
-              ) : (
-                <div className="grid gap-4">
-                  {myDogs.map(dog => (
-                    <div key={dog.id} className="bg-white rounded-xl shadow-sm overflow-hidden flex border border-gray-100 relative">
-                      <img src={dog.image} alt={dog.name} className="w-24 h-24 object-cover" />
-                      {dog.mediaCount > 1 && <div className="absolute top-1 left-1 bg-black/60 text-white text-[10px] px-1.5 py-0.5 rounded flex items-center gap-1"><ImageIcon size={10}/> {dog.mediaCount}</div>}
-                      <div className="p-3 flex-1"><h3 className="font-bold text-gray-800 text-lg">{dog.name}</h3><p className="text-gray-500 text-sm">{dog.breed} • {dog.age}</p></div>
-                    </div>
-                  ))}
-                </div>
-              )}
-              <button onClick={() => setView('add-dog')} className="fixed bottom-6 right-6 lg:absolute lg:bottom-6 lg:right-6 bg-orange-500 text-white p-4 rounded-full shadow-xl hover:bg-orange-600 hover:scale-105 transition-transform z-20"><PlusCircle size={32} /></button>
-            </>
-          )}
-
-          {dashTab === 'applications' && (
-            <div className="grid gap-4">
-              {myApplications.length === 0 ? (
-                <div className="text-center p-8 bg-white rounded-xl border border-dashed border-gray-300 mt-4"><Inbox size={48} className="text-gray-300 mx-auto mb-3" /><p className="text-gray-500">No tienes solicitudes pendientes.</p></div>
-              ) : (
-                myApplications.map(app => (
-                  <div key={app.id} className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-                    <div className="bg-orange-50 p-3 border-b border-orange-100 flex items-center gap-3">
-                      <img src={app.dogImage} className="w-10 h-10 rounded-full object-cover border border-white" alt="dog"/>
-                      <div><p className="text-xs text-orange-600 font-bold uppercase tracking-wider">Interesado en</p><p className="font-bold text-gray-800">{app.dogName}</p></div>
-                    </div>
-                    <div className="p-4 space-y-3 text-sm">
-                      <div><p className="text-xs text-gray-500">Adoptante</p><p className="font-bold text-gray-800 flex items-center gap-2"><User size={16} className="text-gray-400"/> {app.adopterName}</p></div>
-                      {/* Enlaces de comunicación saneados para seguridad */}
-                      <div><p className="text-xs text-gray-500">WhatsApp Seguro</p><a href={`https://wa.me/${app.adopterPhone.replace(/[^\d+]/g, '')}`} target="_blank" rel="noreferrer" className="font-bold text-green-600 flex items-center gap-2 hover:underline"><Phone size={16}/> {app.adopterPhone}</a></div>
-                      <div><p className="text-xs text-gray-500">Correo Seguro</p><a href={`mailto:${encodeURIComponent(app.adopterEmail)}`} className="font-bold text-blue-600 flex items-center gap-2 hover:underline"><Mail size={16}/> {app.adopterEmail}</a></div>
-                    </div>
-                  </div>
-                ))
-              )}
-            </div>
-          )}
-        </div>
-      </div>
-    );
-  };
+  
 
   // --- FORMULARIO COMPLETO PARA AGREGAR PERRO ---
   const renderAddDog = () => {
