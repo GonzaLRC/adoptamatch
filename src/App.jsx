@@ -611,36 +611,7 @@ const renderTermsAndConditions = () => {
     );
   };
 
-  const renderFoundationDash = () => {
-    const myDogs = dogs.filter(d => d.foundationId === user?.uid);
-    const myApplications = applications.filter(a => a.foundationId === user?.uid);
-
-    return (
-      <div className="min-h-screen bg-gray-50 max-w-md mx-auto relative flex flex-col">
-         <div className="p-5 bg-orange-500 text-white shadow-md relative">
-          <button onClick={() => { auth.signOut(); window.location.reload(); }} className="absolute top-5 right-5 text-white/80 hover:text-white flex items-center gap-1 text-sm"><User size={16} /> Salir Seguro</button>
-          <div className="flex items-center gap-2 mb-1"><h2 className="text-xl font-bold">{foundationData.name || 'Mi Fundación'}</h2><ShieldCheck size={18} className="text-green-300" /></div>
-          <p className="text-orange-100 text-sm">Panel de Administración Protegido</p>
-        </div>
-
-        <div className="flex border-b border-gray-200 bg-white shadow-sm sticky top-0 z-10">
-          <button onClick={() => setDashTab('dogs')} className={`flex-1 py-4 text-center font-bold text-sm border-b-2 transition-colors ${dashTab === 'dogs' ? 'border-orange-500 text-orange-600' : 'border-transparent text-gray-500'}`}>
-            Mis Perros ({myDogs.length})
-          </button>
-          <button onClick={() => setDashTab('applications')} className={`flex-1 py-4 text-center font-bold text-sm border-b-2 transition-colors relative ${dashTab === 'applications' ? 'border-orange-500 text-orange-600' : 'border-transparent text-gray-500'}`}>
-            Solicitudes {myApplications.length > 0 && <span className="ml-2 bg-red-500 text-white text-xs px-2 py-0.5 rounded-full">{myApplications.length}</span>}
-          </button>
-          <div className="flex border-b bg-white">
-  <button 
-    className={`flex-1 py-4 font-bold text-sm ${foundationTab === 'dogs' ? 'text-orange-500 border-b-2 border-orange-500' : 'text-gray-500'}`}
-    onClick={() => setFoundationTab('dogs')}
-  >
-    Mis Perros ({foundationDogs.length})
-  </button>
-  <button 
-    className={`flex-1 py-4 font-bold text-sm ${foundationTab === 'requests' ? 'text-orange-500 border-b-2 border-orange-500' : 'text-gray-500'}`}
-    onClick={() => setFoundationTab('requests')}
-    // --- VISTA: DASHBOARD DE FUNDACION ---
+  // --- VISTA: DASHBOARD DE FUNDACION ---
   const renderFoundationDash = () => {
     return (
       <div className="min-h-screen bg-gray-50 flex flex-col">
@@ -805,6 +776,7 @@ const renderTermsAndConditions = () => {
       </div>
     );
   };
+    
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
