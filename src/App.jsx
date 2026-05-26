@@ -1,15 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Heart, X, User, Home, PlusCircle, ArrowLeft, CheckCircle, Dog, MapPin, Mail, Phone, ShieldCheck, Loader2, Bookmark, Trash2, Send, Inbox, Film, Image as ImageIcon, Sparkles, ExternalLink, Download } from 'lucide-react';
 import { initializeApp } from 'firebase/app';
-import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword } from 'firebase/auth';
+import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut } from 'firebase/auth';
 import { getFirestore, collection, addDoc, onSnapshot, doc, setDoc, deleteDoc } from 'firebase/firestore';
 
 // --- CONFIGURACIÓN DE FIREBASE ---
-// Import the functions you need from the SDKs you need
-// TODO: Add SDKs for Firebase products that you want to use
-// https://firebase.google.com/docs/web/setup#available-libraries
-
-// Your web app's Firebase configuration
 const firebaseConfig = {
   apiKey: "AIzaSyA6kcssJeKg5PAenfOBusldT4P58g8QB1M",
   authDomain: "adoptamatch-d9b47.firebaseapp.com",
@@ -127,8 +122,7 @@ export default function App() {
       setIsLoadingDogs(false);
     });
 
-    // SEGURIDAD: En un entorno de producción real, las reglas de Firestore deben bloquear 
-    // la lectura de esta colección para usuarios que no sean dueños de la fundación.
+    // Solicitudes
     const appsRef = collection(db, 'artifacts', appId, 'public', 'data', 'applications');
     const unsubApps = onSnapshot(appsRef, (snapshot) => {
       const appsData = [];
@@ -158,7 +152,6 @@ export default function App() {
     setTimeout(() => setToastMessage(''), 2500);
   };
 
-  // Sanitización de URLs para evitar XSS (Cross-Site Scripting)
   const sanitizeUrl = (url) => {
     if (!url) return '';
     const trimmed = url.trim();
@@ -166,15 +159,12 @@ export default function App() {
     return `https://${trimmed}`;
   };
 
-  // Función para comprimir imágenes antes de guardarlas
   const compressImage = (file) => {
     return new Promise((resolve, reject) => {
-      // SEGURIDAD: Verificar MIME type estricto antes de procesar
       if (!file.type.match(/image\/(jpeg|png|webp|gif)/)) {
         reject(new Error("Formato de imagen no permitido."));
         return;
       }
-
       const reader = new FileReader();
       reader.readAsDataURL(file);
       reader.onload = (event) => {
@@ -251,7 +241,6 @@ export default function App() {
     e.preventDefault();
     if (!user || !pendingMatchDog) return;
     
-    // SEGURIDAD: Limpieza básica de datos antes de enviar a base de datos
     const sanitizedName = adopterForm.name.trim().substring(0, 100);
     const sanitizedEmail = adopterForm.email.trim().toLowerCase().substring(0, 100);
     const sanitizedPhone = adopterForm.phone.trim().substring(0, 20);
@@ -277,7 +266,7 @@ export default function App() {
       });
       setMatchedDog(pendingMatchDog);
       setPendingMatchDog(null);
-      setAdopterForm({ name: '', email: '', phone: '' }); // Limpiar datos de memoria
+      setAdopterForm({ name: '', email: '', phone: '' });
       setView('match');
     } catch (error) {
       alert("Hubo un error seguro al enviar la solicitud.");
@@ -321,15 +310,12 @@ export default function App() {
       e.preventDefault();
       setIsSubmittingTemporal(true);
       try {
-        // Aquí guardaremos en la base de datos de Firebase (Firestore)
-        // Usaremos una colección global llamada 'temporales'
         const db = getFirestore();
         await addDoc(collection(db, 'temporales'), {
           ...temporalForm,
           createdAt: new Date().toISOString()
         });
         
-        // Limpiamos el formulario y volvemos a la pantalla principal
         alert("¡Muchas gracias! Tu solicitud para ser hogar temporal ha sido enviada. Las fundaciones podrán contactarte.");
         setTemporalForm({ name: '', phone: '', location: '', country: 'Chile', availability: 'Inmediata', rate: 'Gratis', comments: '' });
         setView('welcome');
@@ -343,32 +329,26 @@ export default function App() {
 
     return (
       <div className="min-h-screen bg-[#FDFBF7] max-w-md mx-auto flex flex-col">
-        {/* Cabecera Morada */}
         <div className="bg-purple-600 p-6 rounded-b-3xl shadow-md text-white relative">
-          <button onClick={() => setView('welcome')} className="absolute top-6 left-4 p-2">
+          <button onClick={() => setView('role-select')} className="absolute top-6 left-4 p-2">
             <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
           </button>
           <h1 className="text-2xl font-bold text-center mt-2">Hogar Temporal</h1>
           <p className="text-purple-100 text-sm text-center mt-2">Inscríbete para ayudar a cuidar peludos mientras encuentran su hogar definitivo.</p>
         </div>
 
-        {/* Formulario */}
-        <div className="p-6 flex-grow overflow-y-auto">
+        <div className="p-6 flex-grow overflow-y-auto pb-12">
           <form onSubmit={handleTemporalSubmit} className="space-y-4">
-            
-            {/* Nombre Completo */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Nombre Completo</label>
               <input required type="text" className="w-full border-gray-300 rounded-xl p-3 border focus:ring-purple-500 focus:border-purple-500" placeholder="Ej. Camila Rojas" value={temporalForm.name} onChange={e => setTemporalForm({...temporalForm, name: e.target.value})} />
             </div>
 
-            {/* Teléfono */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Teléfono (WhatsApp)</label>
               <input required type="tel" className="w-full border-gray-300 rounded-xl p-3 border focus:ring-purple-500" placeholder="+56 9 1234 5678" value={temporalForm.phone} onChange={e => setTemporalForm({...temporalForm, phone: e.target.value})} />
             </div>
 
-            {/* Ubicación y País */}
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Ciudad / Comuna</label>
@@ -385,7 +365,6 @@ export default function App() {
               </div>
             </div>
 
-            {/* Disponibilidad y Tarifa */}
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Disponibilidad</label>
@@ -398,27 +377,25 @@ export default function App() {
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Tarifa / Costo</label>
                 <select className="w-full border-gray-300 rounded-xl p-3 border focus:ring-purple-500" value={temporalForm.rate} onChange={e => setTemporalForm({...temporalForm, rate: e.target.value})}>
-                  <option value="Gratis">100% Gratis (Voluntario)</option>
-                  <option value="Cobro gastos básicos">Solo cubro gastos (comida/vet)</option>
-                  <option value="Cobro por día">Cobro por día (Guardería)</option>
+                  <option value="Gratis">100% Gratis</option>
+                  <option value="Cobro gastos básicos">Solo cubro gastos</option>
+                  <option value="Cobro por día">Cobro por día</option>
                 </select>
               </div>
             </div>
 
-            {/* Comentarios adicionales */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Experiencia o Condiciones (Opcional)</label>
               <textarea className="w-full border-gray-300 rounded-xl p-3 border focus:ring-purple-500" rows="3" placeholder="Ej. Tengo patio grande, acepto solo cachorros, tengo otros perros..." value={temporalForm.comments} onChange={e => setTemporalForm({...temporalForm, comments: e.target.value})}></textarea>
             </div>
 
-            {/* Botón Guardar */}
             <button 
               type="submit" 
               disabled={isSubmittingTemporal}
               className="w-full bg-purple-600 text-white font-bold py-4 rounded-xl shadow-lg mt-6 hover:bg-purple-700 transition-colors disabled:opacity-70 flex justify-center items-center"
             >
               {isSubmittingTemporal ? (
-                <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                <Loader2 className="animate-spin text-white" size={24}/>
               ) : "Enviar Solicitud"}
             </button>
           </form>
@@ -481,7 +458,6 @@ const renderTermsAndConditions = () => {
 
   // --- COMPONENTES DE FUNDACIÓN ---
   const renderFoundationLogin = () => {
-    // SEGURIDAD: Autenticación Real usando Firebase Auth
     const handleLogin = async (e) => {
       e.preventDefault();
       setIsSubmitting(true);
@@ -492,7 +468,7 @@ const renderTermsAndConditions = () => {
           setView('foundation-dash');
         } else {
           await createUserWithEmailAndPassword(auth, foundationAuth.identifier, foundationAuth.password);
-          setView('foundation-verify'); // Nueva cuenta requiere llenar perfil
+          setView('foundation-verify'); 
         }
       } catch (error) {
         console.error("Error Auth:", error.message);
@@ -508,7 +484,7 @@ const renderTermsAndConditions = () => {
 
     return (
       <div className="min-h-screen bg-white flex flex-col max-w-md mx-auto p-6">
-        <div className="mb-8">
+        <div className="mb-8 mt-4">
           <button onClick={() => setView('role-select')} className="text-gray-600 mb-4"><ArrowLeft size={24} /></button>
           <h2 className="text-3xl font-bold text-gray-800">{foundationAuth.isLogin ? 'Acceso Fundación' : 'Crear Cuenta'}</h2>
           <p className="text-gray-500 mt-2">Gestiona tus rescates de forma segura y recibe solicitudes.</p>
@@ -544,7 +520,7 @@ const renderTermsAndConditions = () => {
             {isSubmitting ? <Loader2 className="animate-spin" size={20} /> : (foundationAuth.isLogin ? 'Ingresar Seguro' : 'Registrar Fundación')}
           </button>
         </form>
-        <button onClick={() => setFoundationAuth({...foundationAuth, isLogin: !foundationAuth.isLogin})} className="mt-6 text-sm text-blue-600 font-bold hover:underline w-full text-center">
+        <button onClick={() => setFoundationAuth({...foundationAuth, isLogin: !foundationAuth.isLogin})} className="mt-6 mb-4 text-sm text-blue-600 font-bold hover:underline w-full text-center">
           {foundationAuth.isLogin ? '¿Tu fundación es nueva? Regístrate aquí' : '¿Ya tienes cuenta? Inicia sesión'}
         </button>
       </div>
@@ -555,7 +531,6 @@ const renderTermsAndConditions = () => {
     const handleFormFileUpload = (e) => {
       const file = e.target.files[0];
       if (file) {
-        // SEGURIDAD: Control de tamaño estricto y tipos MIME (Mitigación subida archivos maliciosos)
         const allowedTypes = ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
         
         if (!allowedTypes.includes(file.type)) {
@@ -580,7 +555,6 @@ const renderTermsAndConditions = () => {
 
     const submitProfile = (e) => {
        e.preventDefault();
-       // Saneamiento de datos de la fundación
        const cleanData = {
          ...foundationData,
          name: foundationData.name.trim().substring(0, 100),
@@ -613,6 +587,10 @@ const renderTermsAndConditions = () => {
 
   // --- VISTA: DASHBOARD DE FUNDACION ---
   const renderFoundationDash = () => {
+    // Filtramos localmente para que la fundación solo vea sus propios perros y solicitudes
+    const myDogs = dogs.filter(dog => dog.foundationId === user?.uid);
+    const myRequests = applications.filter(req => req.foundationId === user?.uid);
+
     return (
       <div className="min-h-screen bg-gray-50 flex flex-col">
         {/* Cabecera */}
@@ -628,8 +606,7 @@ const renderTermsAndConditions = () => {
               try {
                 await signOut(auth);
                 setView('welcome');
-                setFoundationAuth({ isLogin: true, email: '', password: '' });
-                setFoundationDogs([]);
+                setFoundationAuth({ isLogin: true, identifier: '', password: '' });
               } catch (error) {
                 console.error("Error al cerrar sesión", error);
               }
@@ -644,20 +621,20 @@ const renderTermsAndConditions = () => {
         {/* Pestañas (Tabs) */}
         <div className="flex border-b bg-white shadow-sm">
           <button 
-            className={`flex-1 py-4 font-bold text-sm transition-colors ${foundationTab === 'dogs' ? 'text-orange-600 border-b-2 border-orange-600 bg-orange-50' : 'text-gray-500 hover:bg-gray-50'}`}
-            onClick={() => setFoundationTab('dogs')}
+            className={`flex-1 py-4 font-bold text-sm transition-colors ${dashTab === 'dogs' ? 'text-orange-600 border-b-2 border-orange-600 bg-orange-50' : 'text-gray-500 hover:bg-gray-50'}`}
+            onClick={() => setDashTab('dogs')}
           >
-            Mis Perros ({foundationDogs.length})
+            Mis Perros ({myDogs.length})
           </button>
           <button 
-            className={`flex-1 py-4 font-bold text-sm transition-colors ${foundationTab === 'requests' ? 'text-orange-600 border-b-2 border-orange-600 bg-orange-50' : 'text-gray-500 hover:bg-gray-50'}`}
-            onClick={() => setFoundationTab('requests')}
+            className={`flex-1 py-4 font-bold text-sm transition-colors ${dashTab === 'requests' ? 'text-orange-600 border-b-2 border-orange-600 bg-orange-50' : 'text-gray-500 hover:bg-gray-50'}`}
+            onClick={() => setDashTab('requests')}
           >
-            Solicitudes
+            Solicitudes ({myRequests.length})
           </button>
           <button 
-            className={`flex-1 py-4 font-bold text-sm transition-colors ${foundationTab === 'temporales' ? 'text-purple-600 border-b-2 border-purple-600 bg-purple-50' : 'text-gray-500 hover:bg-gray-50'}`}
-            onClick={() => setFoundationTab('temporales')}
+            className={`flex-1 py-4 font-bold text-sm transition-colors ${dashTab === 'temporales' ? 'text-purple-600 border-b-2 border-purple-600 bg-purple-50' : 'text-gray-500 hover:bg-gray-50'}`}
+            onClick={() => setDashTab('temporales')}
           >
             Temporales
           </button>
@@ -667,13 +644,13 @@ const renderTermsAndConditions = () => {
         <div className="flex-1 overflow-y-auto pb-24">
           
           {/* TAB: MIS PERROS */}
-          {foundationTab === 'dogs' && (
+          {dashTab === 'dogs' && (
             <div className="p-4">
               <div className="flex justify-between items-center mb-4">
                 <h2 className="text-gray-600 font-medium text-sm">Tus publicaciones activas</h2>
               </div>
               
-              {foundationDogs.length === 0 ? (
+              {myDogs.length === 0 ? (
                 <div className="text-center py-12 bg-white rounded-2xl border border-dashed border-gray-300">
                   <div className="text-gray-400 mb-2">
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
@@ -683,7 +660,7 @@ const renderTermsAndConditions = () => {
                 </div>
               ) : (
                 <div className="grid grid-cols-2 gap-4">
-                  {foundationDogs.map(dog => (
+                  {myDogs.map(dog => (
                     <div key={dog.id} className="bg-white rounded-2xl overflow-hidden shadow-sm border border-gray-100 relative group">
                       <img src={dog.image} alt={dog.name} className="w-full h-32 object-cover" />
                       <div className="p-3">
@@ -694,8 +671,7 @@ const renderTermsAndConditions = () => {
                         onClick={async () => {
                           if (window.confirm(`¿Estás seguro de eliminar a ${dog.name}?`)) {
                             try {
-                              await deleteDoc(doc(db, 'dogs', dog.id));
-                              // La actualización local se maneja en el onSnapshot
+                              await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'dogs', dog.id));
                             } catch (error) {
                               console.error("Error al eliminar", error);
                               alert("No se pudo eliminar.");
@@ -714,32 +690,37 @@ const renderTermsAndConditions = () => {
           )}
 
           {/* TAB: SOLICITUDES */}
-          {foundationTab === 'requests' && (
+          {dashTab === 'requests' && (
             <div className="p-4 space-y-4">
               <h2 className="text-gray-500 font-medium text-sm mb-2">Solicitudes de Adopción Recibidas</h2>
               
-              <div className="bg-white p-4 rounded-2xl shadow-sm border border-orange-100 border-l-4 border-l-orange-500">
-                <div className="flex justify-between items-start mb-2">
-                  <h3 className="font-bold text-gray-800 text-lg">María González</h3>
-                  <span className="bg-orange-100 text-orange-800 text-xs px-2 py-1 rounded-full font-bold">Para: Max</span>
-                </div>
-                <div className="text-sm text-gray-600 space-y-1 mb-3">
-                  <p>📍 Santiago, Departamento</p>
-                  <p>🐶 Experiencia: Alta (Tuvo perros antes)</p>
-                  <p className="italic text-gray-500 text-xs">"Me enamoré de Max, tengo mucho espacio y trabajo desde casa."</p>
-                </div>
-                <div className="flex gap-2">
-                  <button className="flex-1 bg-green-500 text-white font-bold py-2 rounded-xl flex items-center justify-center gap-2 hover:bg-green-600 transition-colors text-sm">
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M18 10c0 3.866-3.582 7-8 7a8.841 8.841 0 01-4.083-.98L2 17l1.338-3.123C2.493 12.767 2 11.434 2 10c0-3.866 3.582-7 8-7s8 3.134 8 7zM7 9H5v2h2V9zm8 0h-2v2h2V9zM9 9h2v2H9V9z" clipRule="evenodd" /></svg>
-                    WhatsApp
-                  </button>
-                </div>
-              </div>
+              {myRequests.length === 0 ? (
+                <p className="text-center text-gray-500 mt-6 text-sm">Aún no tienes solicitudes.</p>
+              ) : (
+                myRequests.map((req, i) => (
+                  <div key={i} className="bg-white p-4 rounded-2xl shadow-sm border border-orange-100 border-l-4 border-l-orange-500">
+                    <div className="flex justify-between items-start mb-2">
+                      <h3 className="font-bold text-gray-800 text-lg">{req.adopterName}</h3>
+                      <span className="bg-orange-100 text-orange-800 text-xs px-2 py-1 rounded-full font-bold">Para: {req.dogName}</span>
+                    </div>
+                    <div className="text-sm text-gray-600 space-y-1 mb-3">
+                      <p>📱 {req.adopterPhone}</p>
+                      <p>✉️ {req.adopterEmail}</p>
+                    </div>
+                    <div className="flex gap-2">
+                      <a href={`https://wa.me/${req.adopterPhone.replace(/\D/g,'')}`} target="_blank" rel="noopener noreferrer" className="flex-1 bg-green-500 text-white font-bold py-2 rounded-xl flex items-center justify-center gap-2 hover:bg-green-600 transition-colors text-sm">
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M18 10c0 3.866-3.582 7-8 7a8.841 8.841 0 01-4.083-.98L2 17l1.338-3.123C2.493 12.767 2 11.434 2 10c0-3.866 3.582-7 8-7s8 3.134 8 7zM7 9H5v2h2V9zm8 0h-2v2h2V9zM9 9h2v2H9V9z" clipRule="evenodd" /></svg>
+                        WhatsApp
+                      </a>
+                    </div>
+                  </div>
+                ))
+              )}
             </div>
           )}
 
           {/* TAB: TEMPORALES */}
-          {foundationTab === 'temporales' && (
+          {dashTab === 'temporales' && (
             <div className="p-4 space-y-4">
               <h2 className="text-gray-500 font-medium text-sm mb-2">Red de Hogares Temporales Disponibles</h2>
               
@@ -764,7 +745,7 @@ const renderTermsAndConditions = () => {
         </div>
 
         {/* Botón Flotante para Agregar Perro */}
-        {foundationTab === 'dogs' && (
+        {dashTab === 'dogs' && (
           <button 
             onClick={() => setView('add-dog')} 
             className="fixed bottom-6 right-6 bg-orange-600 text-white p-4 rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.12)] hover:bg-orange-700 transition-all transform hover:scale-105 active:scale-95 flex items-center gap-2 font-bold z-50"
@@ -777,65 +758,17 @@ const renderTermsAndConditions = () => {
     );
   };
     
-
-  return (
-    <div className="min-h-screen bg-gray-50 flex flex-col">
-      
-      {/* 1. LOS BOTONES DE LAS PESTAÑAS */}
-      <div className="flex border-b bg-white">
-         {/* ... botones ... */}
-      </div>
-
-      {/* 2. CONTENIDO: MIS PERROS */}
-      {foundationTab === 'dogs' && (
-         <div className="...">...</div>
-      )}
-
-      {/* 3. CONTENIDO: SOLICITUDES */}
-      {foundationTab === 'requests' && (
-         <div className="...">...</div>
-      )}
-
-      {/* 4. AQUÍ DEBES PEGAR EL CONTENIDO: TEMPORALES */}
-      {foundationTab === 'temporales' && (
-         <div className="p-4 space-y-4">
-            <h2 className="text-gray-500 font-medium text-sm mb-2">Red de Hogares Temporales Disponibles</h2>
-            
-            <div className="bg-white p-4 rounded-2xl shadow-sm border border-purple-100 border-l-4 border-l-purple-500">
-               <div className="flex justify-between items-start mb-2">
-                 <h3 className="font-bold text-gray-800 text-lg">Camila Rojas</h3>
-                 <span className="bg-green-100 text-green-700 text-xs px-2 py-1 rounded-full font-bold">100% Gratis</span>
-               </div>
-               <div className="text-sm text-gray-600 space-y-1 mb-3">
-                 <p>📍 Providencia, Chile</p>
-                 <p>🗓️ Disponibilidad: Inmediata</p>
-                 <p className="italic text-gray-500 text-xs">"Tengo patio grande, acepto solo cachorros, tengo otros perros..."</p>
-               </div>
-               <button className="w-full bg-green-500 text-white font-bold py-2 rounded-xl flex items-center justify-center gap-2 hover:bg-green-600">
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M18 10c0 3.866-3.582 7-8 7a8.841 8.841 0 01-4.083-.98L2 17l1.338-3.123C2.493 12.767 2 11.434 2 10c0-3.866 3.582-7 8-7s8 3.134 8 7zM7 9H5v2h2V9zm8 0h-2v2h2V9zM9 9h2v2H9V9z" clipRule="evenodd" /></svg>
-                  Contactar por WhatsApp
-               </button>
-            </div>
-         </div>
-      )}
-
-    </div> {/* CIERRE FINAL DEL RETURN */}
-  );
-};
-  
-
   // --- FORMULARIO COMPLETO PARA AGREGAR PERRO ---
   const renderAddDog = () => {
     // Manejo de Archivos (Subida segura)
     const handleFileSelect = (e) => {
-      const files = Array.from(e.target.files);
-      if (selectedFiles.length + files.length > 5) {
+      if (selectedFiles.length + (Array.from(e.target.files)).length > 5) {
         showToast('Puedes subir un máximo de 5 archivos.');
         return;
       }
       
       const newFiles = [];
-      files.forEach(file => {
+      (Array.from(e.target.files)).forEach(file => {
         // SEGURIDAD: Solo aceptar tipos MIME de imágenes y videos conocidos
         if(file.type.match(/image\/(jpeg|png|webp)/) || file.type.match(/video\/(mp4|webm)/)) {
             newFiles.push({
